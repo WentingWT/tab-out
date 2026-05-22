@@ -2,9 +2,13 @@
 
 **Keep tabs on your tabs.**
 
+This is a personal modified version of [Tab Out](https://github.com/zarazhangrui/tab-out), originally created by [Zara Zhangrui](https://github.com/zarazhangrui).
+
+The original project idea and core implementation are Zara's. This fork keeps that foundation and adds small new-tab workflow customizations: a bookmark bar, Google search, custom shortcuts, and a few local-only configuration hooks.
+
 Tab Out is a Chrome extension that replaces your new tab page with a dashboard of everything you have open. Tabs are grouped by domain, with homepages (Gmail, X, LinkedIn, etc.) pulled into their own group. Close tabs with a satisfying swoosh + confetti.
 
-No server. No account. No external API calls. Just a Chrome extension.
+No server. No account. No backend. Just a Chrome extension.
 
 ---
 
@@ -13,7 +17,7 @@ No server. No account. No external API calls. Just a Chrome extension.
 Send your coding agent (Claude Code, Codex, etc.) this repo and say **"install this"**:
 
 ```
-https://github.com/zarazhangrui/tab-out
+https://github.com/WentingWT/tab-out
 ```
 
 The agent will walk you through it. Takes about 1 minute.
@@ -28,9 +32,12 @@ The agent will walk you through it. Takes about 1 minute.
 - **Duplicate detection** flags when you have the same page open twice, with one-click cleanup
 - **Click any tab to jump to it** across windows, no new tab opened
 - **Save for later** bookmark tabs to a checklist before closing them
+- **Bookmark bar** shows your Chrome bookmarks at the top of the new tab page
+- **Google search** gives you a compact search box directly in the dashboard
+- **Custom shortcuts** lets you add local new-tab shortcuts stored on your own machine
 - **Localhost grouping** shows port numbers next to each tab so you can tell your vibe coding projects apart
 - **Expandable groups** show the first 8 tabs with a clickable "+N more"
-- **100% local** your data never leaves your machine
+- **Local storage** saves tabs and shortcuts in Chrome extension storage
 - **Pure Chrome extension** no server, no Node.js, no npm, no setup beyond loading the extension
 
 ---
@@ -40,7 +47,7 @@ The agent will walk you through it. Takes about 1 minute.
 **1. Clone the repo**
 
 ```bash
-git clone https://github.com/zarazhangrui/tab-out.git
+git clone https://github.com/WentingWT/tab-out.git
 ```
 
 **2. Load the Chrome extension**
@@ -67,7 +74,11 @@ You open a new tab
   -> Save tabs for later before closing them
 ```
 
-Everything runs inside the Chrome extension. No external server, no API calls, no data sent anywhere. Saved tabs are stored in `chrome.storage.local`.
+Everything runs inside the Chrome extension. There is no external server or account. Saved tabs are stored in `chrome.storage.local`.
+
+Custom shortcuts are also stored in `chrome.storage.local`. Optional personal rules can be placed in `extension/config.local.js`; that file is ignored by git so local-only settings stay local.
+
+The page may request favicons and web fonts from the browser/Google-provided services so site icons and text render nicely.
 
 ---
 
@@ -88,4 +99,4 @@ MIT
 
 ---
 
-Built by [Zara](https://x.com/zarazhangrui)
+Original project built by [Zara](https://github.com/zarazhangrui). This fork is maintained by [WentingWT](https://github.com/WentingWT) and contains personal workflow customizations.
