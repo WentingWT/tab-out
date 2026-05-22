@@ -58,6 +58,19 @@ function getShortcutFavicon(url) {
   }
 }
 
+function isInternalShortcut(url) {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    const internalDomains =
+      typeof LOCAL_INTERNAL_SHORTCUT_DOMAINS !== 'undefined' && Array.isArray(LOCAL_INTERNAL_SHORTCUT_DOMAINS)
+        ? LOCAL_INTERNAL_SHORTCUT_DOMAINS
+        : [];
+    return internalDomains.some(token => hostname.includes(String(token).toLowerCase()));
+  } catch {
+    return false;
+  }
+}
+
 async function getShortcuts() {
   const { [SHORTCUTS_KEY]: shortcuts = [] } = await chrome.storage.local.get(SHORTCUTS_KEY);
   return Array.isArray(shortcuts) ? shortcuts : [];
@@ -68,12 +81,15 @@ async function saveShortcuts(shortcuts) {
 }
 
 function renderShortcutItem(shortcut) {
-  const favicon = getShortcutFavicon(shortcut.url);
+  const useInternalIcon = isInternalShortcut(shortcut.url);
+  const favicon = useInternalIcon ? '' : getShortcutFavicon(shortcut.url);
+  const fallbackLetter = (shortcut.name || shortcut.url || '?').trim().charAt(0).toUpperCase() || '?';
   return `
     <div class="shortcut-item-wrap">
       <a class="shortcut-item" href="${escapeHtml(shortcut.url)}" title="${escapeHtml(shortcut.name)}">
-        <span class="shortcut-icon">
-          ${favicon ? `<img src="${favicon}" alt="" onerror="this.style.display='none'">` : ''}
+        <span class="shortcut-icon${useInternalIcon ? ' shortcut-icon-internal' : ''}" data-letter="${escapeHtml(fallbackLetter)}">
+          ${useInternalIcon ? '<span class="shortcut-symbol" aria-hidden="true">⌘</span>' : ''}
+          ${favicon ? `<img class="shortcut-favicon" src="${favicon}" alt="">` : ''}
         </span>
         <span class="shortcut-name">${escapeHtml(shortcut.name)}</span>
       </a>
@@ -84,6 +100,32 @@ function renderShortcutItem(shortcut) {
       </button>
     </div>
   `;
+}
+
+function bindShortcutImageFallbacks() {
+  document.querySelectorAll('.shortcut-favicon').forEach(img => {
+    const icon = img.closest('.shortcut-icon');
+    const markLoaded = () => icon?.classList.add('has-image');
+    const markFailed = () => {
+      icon?.classList.remove('has-image');
+      img.remove();
+    };
+
+    img.addEventListener('load', markLoaded, { once: true });
+    img.addEventListener('error', markFailed, { once: true });
+
+    if (img.complete) {
+      if (img.naturalWidth > 0) markLoaded();
+      else markFailed();
+    }
+  });
+}
+
+function bindImageErrorHiding(root = document) {
+  root.querySelectorAll('img[data-hide-on-error]').forEach(img => {
+    img.addEventListener('error', () => { img.style.display = 'none'; }, { once: true });
+    if (img.complete && img.naturalWidth === 0) img.style.display = 'none';
+  });
 }
 
 async function renderShortcuts() {
@@ -100,9 +142,10 @@ async function renderShortcuts() {
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
         </svg>
       </span>
-      <span class="shortcut-name">Add</span>
+      <span class="shortcut-name">Add shortcut</span>
     </button>
   `;
+  bindShortcutImageFallbacks();
 }
 
 function openShortcutModal(shortcut = null) {
@@ -934,7 +977,7 @@ function buildOverflowChips(hiddenTabs, urlCounts = {}) {
     try { domain = new URL(tab.url).hostname; } catch {}
     const faviconUrl = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=16` : '';
     return `<div class="page-chip clickable${chipClass}" data-action="focus-tab" data-tab-url="${safeUrl}" title="${safeTitle}">
-      ${faviconUrl ? `<img class="chip-favicon" src="${faviconUrl}" alt="" onerror="this.style.display='none'">` : ''}
+      ${faviconUrl ? `<img class="chip-favicon" src="${faviconUrl}" alt="" data-hide-on-error>` : ''}
       <span class="chip-text">${label}</span>${dupeTag}
       <div class="chip-actions">
         <button class="chip-action chip-save" data-action="defer-single-tab" data-tab-url="${safeUrl}" data-tab-title="${safeTitle}" title="Save for later">
@@ -1015,7 +1058,7 @@ function renderDomainCard(group) {
     try { domain = new URL(tab.url).hostname; } catch {}
     const faviconUrl = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=16` : '';
     return `<div class="page-chip clickable${chipClass}" data-action="focus-tab" data-tab-url="${safeUrl}" title="${safeTitle}">
-      ${faviconUrl ? `<img class="chip-favicon" src="${faviconUrl}" alt="" onerror="this.style.display='none'">` : ''}
+      ${faviconUrl ? `<img class="chip-favicon" src="${faviconUrl}" alt="" data-hide-on-error>` : ''}
       <span class="chip-text">${label}</span>${dupeTag}
       <div class="chip-actions">
         <button class="chip-action chip-save" data-action="defer-single-tab" data-tab-url="${safeUrl}" data-tab-title="${safeTitle}" title="Save for later">
@@ -1099,6 +1142,7 @@ async function renderDeferredColumn() {
     if (active.length > 0) {
       countEl.textContent = `${active.length} item${active.length !== 1 ? 's' : ''}`;
       list.innerHTML = active.map(item => renderDeferredItem(item)).join('');
+      bindImageErrorHiding(list);
       list.style.display = 'block';
       empty.style.display = 'none';
     } else {
@@ -1139,7 +1183,7 @@ function renderDeferredItem(item) {
       <input type="checkbox" class="deferred-checkbox" data-action="check-deferred" data-deferred-id="${item.id}">
       <div class="deferred-info">
         <a href="${item.url}" target="_blank" rel="noopener" class="deferred-title" title="${(item.title || '').replace(/"/g, '&quot;')}">
-          <img src="${faviconUrl}" alt="" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px" onerror="this.style.display='none'">${item.title || item.url}
+          <img class="deferred-favicon" src="${faviconUrl}" alt="" data-hide-on-error>${item.title || item.url}
         </a>
         <div class="deferred-meta">
           <span>${domain}</span>
@@ -1320,6 +1364,7 @@ async function renderStaticDashboard() {
     if (openTabsSectionTitle) openTabsSectionTitle.textContent = 'Open tabs';
     openTabsSectionCount.innerHTML = `${domainGroups.length} domain${domainGroups.length !== 1 ? 's' : ''} &nbsp;&middot;&nbsp; <button class="action-btn close-tabs" data-action="close-all-open-tabs" style="font-size:11px;padding:3px 10px;">${ICONS.close} Close all ${realTabs.length} tabs</button>`;
     openTabsMissionsEl.innerHTML = domainGroups.map(g => renderDomainCard(g)).join('');
+    bindImageErrorHiding(openTabsMissionsEl);
     openTabsSection.style.display = 'block';
   } else if (openTabsSection) {
     openTabsSection.style.display = 'none';
