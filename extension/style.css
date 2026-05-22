@@ -219,12 +219,22 @@ header {
   gap: 2px;
   min-width: 0;
   overflow-x: auto;
-  padding: 4px 2px 8px;
-  scrollbar-width: none;
+  padding: 4px 2px 12px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(154, 145, 138, 0.35) transparent;
 }
 
 .shortcut-grid::-webkit-scrollbar {
-  display: none;
+  height: 6px;
+}
+
+.shortcut-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.shortcut-grid::-webkit-scrollbar-thumb {
+  background: rgba(154, 145, 138, 0.35);
+  border-radius: 999px;
 }
 
 .shortcut-item-wrap {

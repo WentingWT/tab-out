@@ -133,9 +133,8 @@ async function renderShortcuts() {
   if (!grid) return;
 
   const shortcuts = await getShortcuts();
-  const visibleShortcuts = shortcuts.slice(0, 9);
   grid.innerHTML = `
-    ${visibleShortcuts.map(renderShortcutItem).join('')}
+    ${shortcuts.map(renderShortcutItem).join('')}
     <button class="shortcut-item shortcut-add" data-action="add-shortcut" title="Add shortcut">
       <span class="shortcut-icon">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
