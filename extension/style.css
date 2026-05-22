@@ -133,29 +133,37 @@ body::before {
 /* ---- Header ---- */
 header {
   display: grid;
-  grid-template-columns: minmax(220px, 300px) minmax(320px, 1fr);
+  grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
   align-items: center;
-  gap: 40px;
-  margin-bottom: 48px;
+  gap: 56px;
+  margin-bottom: 18px;
   padding-bottom: 24px;
   border-bottom: 1px solid var(--warm-gray);
 }
 
-.google-search {
-  width: min(720px, 100%);
-  justify-self: center;
+.quick-access {
+  width: 100%;
   display: flex;
   align-items: center;
-  flex-direction: column;
-  gap: 12px;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.google-search {
+  width: clamp(260px, 34vw, 520px);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .google-logo {
-  font-family: Arial, sans-serif;
-  font-size: 42px;
+  font-family: 'Product Sans', 'Google Sans', 'Google Sans Text', Arial, sans-serif;
+  font-size: 24px;
   font-weight: 500;
   line-height: 1;
-  letter-spacing: -2px;
+  letter-spacing: 0;
+  flex-shrink: 0;
 }
 
 .google-blue { color: #4285f4; }
@@ -165,7 +173,7 @@ header {
 
 .google-search-box {
   width: 100%;
-  height: 46px;
+  height: 38px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -196,7 +204,187 @@ header {
   outline: none;
   background: transparent;
   color: var(--ink);
-  font: 400 16px 'DM Sans', sans-serif;
+  font: 400 14px 'DM Sans', sans-serif;
+}
+
+.shortcuts-section {
+  margin-bottom: 28px;
+  padding: 8px 0 20px;
+  border-bottom: 1px solid var(--warm-gray);
+}
+
+.shortcut-grid {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
+  overflow-x: auto;
+  padding: 4px 2px 8px;
+  scrollbar-width: none;
+}
+
+.shortcut-grid::-webkit-scrollbar {
+  display: none;
+}
+
+.shortcut-item-wrap {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.shortcut-item {
+  width: 68px;
+  min-height: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 7px;
+  padding: 6px 4px;
+  color: var(--ink);
+  text-decoration: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.shortcut-item:hover,
+.shortcut-item-wrap:hover .shortcut-item {
+  background: rgba(154, 145, 138, 0.08);
+}
+
+.shortcut-icon {
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card-bg);
+  border: 1px solid var(--warm-gray);
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(26, 22, 19, 0.06);
+}
+
+.shortcut-icon img {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+}
+
+.shortcut-icon svg {
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
+}
+
+.shortcut-name {
+  width: 100%;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.2;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shortcut-menu-btn {
+  position: absolute;
+  top: 2px;
+  right: 0;
+  width: 22px;
+  height: 22px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: var(--card-bg);
+  color: var(--muted);
+  box-shadow: 0 2px 8px rgba(26, 22, 19, 0.12);
+  cursor: pointer;
+}
+
+.shortcut-menu-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.shortcut-item-wrap:hover .shortcut-menu-btn {
+  display: flex;
+}
+
+.shortcut-add {
+  border: none;
+  background: transparent;
+  font-family: 'DM Sans', sans-serif;
+  flex: 0 0 auto;
+}
+
+.shortcut-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+  background: rgba(26, 22, 19, 0.18);
+  backdrop-filter: blur(4px);
+}
+
+.shortcut-modal {
+  width: min(360px, calc(100vw - 32px));
+  padding: 22px;
+  background: var(--card-bg);
+  border: 1px solid var(--warm-gray);
+  border-radius: 8px;
+  box-shadow: 0 18px 50px rgba(26, 22, 19, 0.18);
+}
+
+.shortcut-modal-title {
+  font-family: 'Newsreader', serif;
+  font-size: 22px;
+  font-weight: 400;
+  margin-bottom: 18px;
+}
+
+.shortcut-modal label {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.shortcut-modal label span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.shortcut-modal input[type="text"] {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--warm-gray);
+  border-radius: 6px;
+  outline: none;
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 14px 'DM Sans', sans-serif;
+}
+
+.shortcut-modal input[type="text"]:focus {
+  border-color: var(--accent-amber);
+}
+
+.shortcut-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.shortcut-delete-btn {
+  margin-right: auto;
+  color: var(--status-abandoned);
 }
 
 .header-left h1 {
@@ -1052,8 +1240,11 @@ footer { animation: fadeUp 0.5s ease 0.65s both; }
     grid-template-columns: 1fr;
     gap: 24px;
   }
+  .quick-access {
+    flex-wrap: wrap;
+  }
   .google-search {
-    justify-self: stretch;
+    width: 100%;
   }
   .dashboard-columns {
     flex-direction: column;

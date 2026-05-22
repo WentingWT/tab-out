@@ -25,6 +25,7 @@
 
 // All open tabs — populated by fetchOpenTabs()
 let openTabs = [];
+const SHORTCUTS_KEY = 'shortcuts';
 
 function buildGoogleDestination(value) {
   const query = value.trim();
@@ -40,6 +41,91 @@ function buildGoogleDestination(value) {
   }
 
   return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+}
+
+function normalizeUrl(value) {
+  const url = value.trim();
+  if (!url) return '';
+  return /^https?:\/\//i.test(url) ? url : `https://${url}`;
+}
+
+function getShortcutFavicon(url) {
+  try {
+    const hostname = new URL(url).hostname;
+    return `https://www.google.com/s2/favicons?domain=${hostname}&sz=64`;
+  } catch {
+    return '';
+  }
+}
+
+async function getShortcuts() {
+  const { [SHORTCUTS_KEY]: shortcuts = [] } = await chrome.storage.local.get(SHORTCUTS_KEY);
+  return Array.isArray(shortcuts) ? shortcuts : [];
+}
+
+async function saveShortcuts(shortcuts) {
+  await chrome.storage.local.set({ [SHORTCUTS_KEY]: shortcuts });
+}
+
+function renderShortcutItem(shortcut) {
+  const favicon = getShortcutFavicon(shortcut.url);
+  return `
+    <div class="shortcut-item-wrap">
+      <a class="shortcut-item" href="${escapeHtml(shortcut.url)}" title="${escapeHtml(shortcut.name)}">
+        <span class="shortcut-icon">
+          ${favicon ? `<img src="${favicon}" alt="" onerror="this.style.display='none'">` : ''}
+        </span>
+        <span class="shortcut-name">${escapeHtml(shortcut.name)}</span>
+      </a>
+      <button class="shortcut-menu-btn" data-action="edit-shortcut" data-shortcut-id="${escapeHtml(shortcut.id)}" title="Edit shortcut">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+        </svg>
+      </button>
+    </div>
+  `;
+}
+
+async function renderShortcuts() {
+  const grid = document.getElementById('shortcutGrid');
+  if (!grid) return;
+
+  const shortcuts = await getShortcuts();
+  const visibleShortcuts = shortcuts.slice(0, 9);
+  grid.innerHTML = `
+    ${visibleShortcuts.map(renderShortcutItem).join('')}
+    <button class="shortcut-item shortcut-add" data-action="add-shortcut" title="Add shortcut">
+      <span class="shortcut-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+      </span>
+      <span class="shortcut-name">Add</span>
+    </button>
+  `;
+}
+
+function openShortcutModal(shortcut = null) {
+  const modal = document.getElementById('shortcutModal');
+  const title = document.getElementById('shortcutModalTitle');
+  const idInput = document.getElementById('shortcutId');
+  const nameInput = document.getElementById('shortcutName');
+  const urlInput = document.getElementById('shortcutUrl');
+  const deleteBtn = document.getElementById('shortcutDeleteBtn');
+
+  if (!modal || !idInput || !nameInput || !urlInput) return;
+  if (title) title.textContent = shortcut ? 'Edit shortcut' : 'Add shortcut';
+  idInput.value = shortcut?.id || '';
+  nameInput.value = shortcut?.name || '';
+  urlInput.value = shortcut?.url || '';
+  if (deleteBtn) deleteBtn.style.display = shortcut ? '' : 'none';
+  modal.style.display = 'flex';
+  nameInput.focus();
+}
+
+function closeShortcutModal() {
+  const modal = document.getElementById('shortcutModal');
+  if (modal) modal.style.display = 'none';
 }
 
 /**
@@ -1100,6 +1186,7 @@ function renderArchiveItem(item) {
  */
 async function renderStaticDashboard() {
   await renderBookmarkBar();
+  await renderShortcuts();
 
   // --- Header ---
   const greetingEl = document.getElementById('greeting');
@@ -1268,6 +1355,36 @@ document.addEventListener('click', async (e) => {
   if (!actionEl) return;
 
   const action = actionEl.dataset.action;
+
+  // ---- Custom shortcuts ----
+  if (action === 'add-shortcut') {
+    openShortcutModal();
+    return;
+  }
+
+  if (action === 'edit-shortcut') {
+    const shortcuts = await getShortcuts();
+    const shortcut = shortcuts.find(item => item.id === actionEl.dataset.shortcutId);
+    if (shortcut) openShortcutModal(shortcut);
+    return;
+  }
+
+  if (action === 'close-shortcut-modal') {
+    closeShortcutModal();
+    return;
+  }
+
+  if (action === 'delete-shortcut') {
+    const id = document.getElementById('shortcutId')?.value;
+    if (!id) return;
+
+    const shortcuts = await getShortcuts();
+    await saveShortcuts(shortcuts.filter(item => item.id !== id));
+    closeShortcutModal();
+    await renderShortcuts();
+    showToast('Shortcut deleted');
+    return;
+  }
 
   // ---- Close duplicate Tab Out tabs ----
   if (action === 'close-tabout-dupes') {
@@ -1514,13 +1631,46 @@ document.addEventListener('click', async (e) => {
   }
 });
 
-document.addEventListener('submit', (e) => {
-  if (e.target.id !== 'googleSearchForm') return;
-  e.preventDefault();
+document.addEventListener('submit', async (e) => {
+  if (e.target.id === 'googleSearchForm') {
+    e.preventDefault();
 
-  const input = document.getElementById('googleSearchInput');
-  const destination = buildGoogleDestination(input?.value || '');
-  if (destination) window.location.href = destination;
+    const input = document.getElementById('googleSearchInput');
+    const destination = buildGoogleDestination(input?.value || '');
+    if (destination) window.location.href = destination;
+    return;
+  }
+
+  if (e.target.id === 'shortcutForm') {
+    e.preventDefault();
+
+    const id = document.getElementById('shortcutId')?.value;
+    const name = document.getElementById('shortcutName')?.value.trim();
+    const url = normalizeUrl(document.getElementById('shortcutUrl')?.value || '');
+    if (!name || !url) return;
+    try {
+      new URL(url);
+    } catch {
+      showToast('Enter a valid URL');
+      return;
+    }
+
+    const shortcuts = await getShortcuts();
+    const existingIndex = shortcuts.findIndex(item => item.id === id);
+    const shortcut = { id: id || Date.now().toString(), name, url };
+
+    if (existingIndex >= 0) shortcuts[existingIndex] = shortcut;
+    else shortcuts.push(shortcut);
+
+    await saveShortcuts(shortcuts);
+    closeShortcutModal();
+    await renderShortcuts();
+    showToast(existingIndex >= 0 ? 'Shortcut updated' : 'Shortcut added');
+  }
+});
+
+document.addEventListener('click', (e) => {
+  if (e.target.id === 'shortcutModal') closeShortcutModal();
 });
 
 // ---- Archive toggle — expand/collapse the archive section ----

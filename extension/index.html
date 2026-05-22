@@ -28,18 +28,24 @@
       <!-- "Friday, April 4, 2026" — written by getDateDisplay() in app.js -->
       <div class="date" id="dateDisplay"></div>
     </div>
-    <form class="google-search" id="googleSearchForm">
-      <div class="google-logo" aria-label="Google">
-        <span class="google-blue">G</span><span class="google-red">o</span><span class="google-yellow">o</span><span class="google-blue">g</span><span class="google-green">l</span><span class="google-red">e</span>
-      </div>
-      <div class="google-search-box">
-        <svg class="google-search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.197 5.197a7.5 7.5 0 0 0 10.606 10.606Z" />
-        </svg>
-        <input id="googleSearchInput" type="text" autocomplete="off" spellcheck="false" aria-label="Search Google or type a URL">
-      </div>
-    </form>
+    <div class="quick-access">
+      <form class="google-search" id="googleSearchForm">
+        <div class="google-logo" aria-label="Google">
+          <span class="google-blue">G</span><span class="google-red">o</span><span class="google-yellow">o</span><span class="google-blue">g</span><span class="google-green">l</span><span class="google-red">e</span>
+        </div>
+        <div class="google-search-box">
+          <svg class="google-search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.197 5.197a7.5 7.5 0 0 0 10.606 10.606Z" />
+          </svg>
+          <input id="googleSearchInput" type="text" autocomplete="off" spellcheck="false" aria-label="Search Google or type a URL">
+        </div>
+      </form>
+    </div>
   </header>
+
+  <div class="shortcuts-section">
+    <div class="shortcut-grid" id="shortcutGrid" aria-label="Shortcuts"></div>
+  </div>
 
   <!-- ================================================================
        TAB OUT DUPES BANNER — appears when you have extra Tab Out tabs open
@@ -136,6 +142,26 @@
     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
   </svg>
   <span id="toastText"></span>
+</div>
+
+<div class="shortcut-modal-backdrop" id="shortcutModal" style="display:none">
+  <form class="shortcut-modal" id="shortcutForm">
+    <div class="shortcut-modal-title" id="shortcutModalTitle">Add shortcut</div>
+    <input type="hidden" id="shortcutId">
+    <label>
+      <span>Name</span>
+      <input id="shortcutName" type="text" autocomplete="off" required>
+    </label>
+    <label>
+      <span>URL</span>
+      <input id="shortcutUrl" type="text" autocomplete="off" required>
+    </label>
+    <div class="shortcut-modal-actions">
+      <button type="button" class="action-btn shortcut-delete-btn" id="shortcutDeleteBtn" data-action="delete-shortcut">Delete</button>
+      <button type="button" class="action-btn" data-action="close-shortcut-modal">Cancel</button>
+      <button type="submit" class="tab-cleanup-btn">Save</button>
+    </div>
+  </form>
 </div>
 
 <!-- Personal config (gitignored) — defines LOCAL_LANDING_PAGE_PATTERNS etc. -->
