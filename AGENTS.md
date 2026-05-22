@@ -1,6 +1,6 @@
-# AGENTS.md -- Tab Out: Setup & Onboarding Guide for Coding Agents
+# AGENTS.md -- Tab Out Custom: Setup & Onboarding Guide for Coding Agents
 
-You're installing **Tab Out** for the user. Your job is not just to set it up -- it's to get them excited about using it.
+You're installing this customized fork of **Tab Out** for the user. Tab Out was originally created by [Zara Zhangrui](https://github.com/zarazhangrui); this fork is maintained by [WentingWT](https://github.com/WentingWT) and adds a few personal new-tab workflow customizations.
 
 ---
 
@@ -10,14 +10,19 @@ Before doing anything technical, tell the user what they're about to get:
 
 > **Tab Out** replaces your new tab page with a clean dashboard of everything you have open, grouped by domain.
 >
-> Here's what makes it great:
+> Original Tab Out features:
 > - **See all your open tabs at a glance** grouped by domain on a grid
 > - **Homepages group** pulls Gmail, X, LinkedIn, YouTube, GitHub homepages into one card for easy cleanup
 > - **Close tabs with style** satisfying swoosh sound + confetti burst
 > - **Duplicate detection** flags when you have the same page open twice
 > - **Click any tab title to jump to it** even across different Chrome windows
 > - **Save for later** bookmark individual tabs to a checklist before closing them
-> - **100% local** no server, no accounts, no data sent anywhere
+>
+> Customizations in this fork:
+> - **Bookmark bar** shows Chrome bookmarks at the top of the new tab page
+> - **Google search** adds a compact dashboard search box
+> - **Custom shortcuts** add local new-tab shortcuts stored in Chrome extension storage
+> - **Local config hook** lets ignored local config customize private/internal shortcut icon rules
 >
 > It's just a Chrome extension. Setup takes about 1 minute.
 
@@ -26,7 +31,7 @@ Before doing anything technical, tell the user what they're about to get:
 ## Step 1 -- Clone the repo
 
 ```bash
-git clone https://github.com/zarazhangrui/tab-out.git
+git clone https://github.com/WentingWT/tab-out.git
 cd tab-out
 ```
 
@@ -83,8 +88,9 @@ Once the extension is loaded:
 > 5. **Click "Close all N tabs"** on a group to close the whole thing.
 > 6. **Duplicate tabs** are flagged with an amber "(2x)" badge. Click "Close duplicates" to keep one copy.
 > 7. **Save a tab for later** by clicking the bookmark icon before closing it. Saved tabs appear in the sidebar.
+> 8. **Add shortcuts** with the shortcut row's "Add shortcut" button.
 >
-> That's it! No server to run, no config files. Everything works right away.
+> That's it! No server to run. Everything works right away.
 
 ---
 
@@ -92,5 +98,7 @@ Once the extension is loaded:
 
 - Tab Out is a pure Chrome extension. No server, no Node.js, no npm.
 - Saved tabs are stored in `chrome.storage.local` (persists across sessions).
-- 100% local. No data is sent to any external service.
+- Custom shortcuts are stored in `chrome.storage.local` (persists across sessions).
+- Optional personal rules can be placed in `extension/config.local.js`. This file is ignored by git and should remain local-only.
+- The page may request favicons and web fonts from browser/Google-provided services so site icons and text render nicely.
 - To update: `cd tab-out && git pull`, then reload the extension in `chrome://extensions`.
